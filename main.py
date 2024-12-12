@@ -24,13 +24,9 @@ def normalize_salary(salary):
 
     if "thoả thuận" in salary.lower():
         return None, None, None
-    
-
     elif "trên" in salary.lower():
         min_salary = int(re.search(r'\d+', salary).group())
         return min_salary, None, "VND"
-    
-
     elif "tới" in salary.lower():
         max_salary = int(re.search(r'\d+', salary).group())
         return 0, max_salary, "VND"
@@ -135,7 +131,7 @@ mysql_database = os.getenv('DB_NAME')
 mysql_user = os.getenv('DB_USER')
 mysql_password = os.getenv('DB_PASS')
 
-# Kiểm tra giá trị biến môi trường (có thể xoá trong production)
+# Kiểm tra giá trị biến môi trường 
 print("Database host:", mysql_host)
 print("User:", mysql_user)
 print("Password:", mysql_password)
