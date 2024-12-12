@@ -18,8 +18,6 @@ import re
 if df.isnull().values.any():
     raise ValueError("Dữ liệu chứa giá trị null!")
 
-
-
 def normalize_salary(salary):
 
     if "thoả thuận" in salary.lower():
@@ -30,8 +28,6 @@ def normalize_salary(salary):
     elif "tới" in salary.lower():
         max_salary = int(re.search(r'\d+', salary).group())
         return 0, max_salary, "VND"
-    
-
     elif "-" in salary:
         match = re.findall(r'\d+', salary)
         if len(match) == 2:  # Đảm bảo có 2 số
@@ -67,17 +63,13 @@ def split_address(address):
     if len(parts) == 2:
         district, city = parts[0], parts[1]
         return district, city
-
     return None, None
-
-
 
 df[['district', 'city']] = df['address'].apply(lambda x: pd.Series(split_address(x)))
 
 def normalize_job_title(job_title):
     title = job_title.lower()
 
-    
     title = re.sub(r"(lương.*|từ \d+.*|(\d+ năm|năm kinh nghiệm).*|thu nhập từ.*|tới \d+.*|salary.*|code: \w+)", "", title, flags=re.IGNORECASE).strip()
     title = re.sub(r"[\(\)\[\]\{\}]", "", title)  
     title = re.sub(r"\s{2,}", " ", title)  
@@ -141,9 +133,7 @@ print("Port:", mysql_port)
 # Kết nối tới cơ sở dữ liệu
 engine = create_engine(f'mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}:{mysql_port}/{mysql_database}')
 
-
-
-# Ví dụ thực hiện tải dữ liệu
+#Thực hiện tải dữ liệu
 try:
     df.to_sql('jobs', con=engine, if_exists='replace', index=False)
     print("Dữ liệu đã được tải thành công vào cơ sở dữ liệu.")
