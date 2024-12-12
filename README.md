@@ -6,31 +6,51 @@
 Xử lý dữ liệu thiếu và lỗi.
 Tải dữ liệu vào cơ sở dữ liệu MySQL.
 Vẽ biểu đồ minh họa thông tin như:
+
 Top 10 mức lương trung bình theo vị trí.
+
 Bản đồ nhiệt phân bố việc làm theo khu vực.
+
 Xu hướng công nghệ theo thời gian.
 
 ## Tính năng chính
 Chuẩn hóa cột lương (salary) để tạo ra các cột min_salary, max_salary, và salary_unit.
+
 Tách địa chỉ thành district và city.
+
 Chuẩn hóa tiêu đề công việc (job_title) thành các nhóm như Developer, Analyst, Manager, v.v.
+
 Tính toán mức lương trung bình cho từng vị trí công việc.
+
 Tải dữ liệu đã xử lý vào cơ sở dữ liệu MySQL.
+
 Vẽ các biểu đồ trực quan như:
+
 Biểu đồ cột: Mức lương trung bình theo vị trí công việc.
+
 Heatmap: Phân bố công việc theo khu vực.
+
 Biểu đồ đường: Xu hướng công nghệ theo thời gian.
 
 ## Cài đặt và Chạy dự án
 Yêu cầu hệ thống
+
 Python 3.10+
+
 MySQL Database
+
 Thư viện Python: pandas, numpy, matplotlib, seaborn, sqlalchemy, pymysql
+
 Cài đặt thư viện
+
 Cài đặt các thư viện cần thiết từ file requirements.txt:
+
 pip install -r requirements.txt
+
 Cấu hình cơ sở dữ liệu
+
 Tạo một cơ sở dữ liệu MySQL và thêm thông tin cấu hình vào biến môi trường\n
+
 export DB_HOST='your_mysql_host'
 
 export DB_PORT='your_mysql_port'
