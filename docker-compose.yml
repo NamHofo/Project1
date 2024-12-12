@@ -16,9 +16,9 @@ services:
     build: .
     container_name: python_app
     depends_on:
-      - db
+      - localhost
     environment:
-      - DB_HOST=db
+      - DB_HOST=localhost
       - DB_PORT=3306
       - DB_NAME=job_data
       - DB_USER=root

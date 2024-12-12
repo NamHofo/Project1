@@ -109,6 +109,21 @@ def normalize_job_title(job_title):
 
 df["normalized_job_title"] = df["job_title"].apply(normalize_job_title)
 
+# Chuyển các cột về string
+string_columns = ['job_title', 'company', 'salary', 'address', 'time', 
+                  'link_description', 'salary_unit', 'district', 
+                  'city', 'normalized_job_title']
+for col in string_columns:
+    df[col] = df[col].astype('string')
+
+# Chuyển các cột về float
+float_columns = ['min_salary', 'max_salary','salary']
+for col in float_columns:
+    df[col] = pd.to_numeric(df[col], errors='coerce')
+
+# Chuyển cột 'created_date' sang datetime
+df['created_date'] = pd.to_datetime(df['created_date'], errors='coerce')
+
 
 import os
 from sqlalchemy import create_engine
@@ -123,6 +138,9 @@ mysql_password = os.getenv('DB_PASS')
 # Kiểm tra giá trị biến môi trường (có thể xoá trong production)
 print("Database host:", mysql_host)
 print("User:", mysql_user)
+print("Password:", mysql_password)
+print("Database name:", mysql_database)
+print("Port:", mysql_port)  
 
 # Kết nối tới cơ sở dữ liệu
 engine = create_engine(f'mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}:{mysql_port}/{mysql_database}')
