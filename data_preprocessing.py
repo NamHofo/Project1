@@ -1,36 +1,65 @@
-
 import re
 
 def normalize_salary(salary):
-
-    if "thoả thuận" in salary.lower():
+    if salary is None:
         return None, None, None
-    elif "trên" in salary.lower():
-        min_salary = int(re.search(r'\d+', salary).group())
-        return min_salary, None, "VND"
-    elif "tới" in salary.lower():
-        max_salary = int(re.search(r'\d+', salary).group())
-        return 0, max_salary, "VND"
+    
+    salary_lower = salary.lower()
+
+    if "thoả thuận" in salary_lower:
+        return None, None, None
+
+    elif "trên" in salary_lower:
+        match = re.search(r'\d+', salary)
+        if match:
+            min_salary = int(match.group())
+            unit = "USD" if "$" in salary else "VND"
+            return min_salary, None, unit
+        return None, None, None
+
+    elif "tới" in salary_lower:
+        match = re.search(r'\d+', salary)
+        if match:
+            max_salary = int(match.group())
+            unit = "USD" if "$" in salary else "VND"
+            return 0, max_salary, unit
+        return None, None, None
+
     elif "-" in salary:
-        match = re.findall(r'\d+', salary)
-        if len(match) == 2:  # Đảm bảo có 2 số
-            min_salary, max_salary = map(int, match)
-            if( "$" in salary):
-                return min_salary, max_salary, "USD"
-            return min_salary, max_salary, "VND"
-        else:
-            return None, None, None 
-    elif "$" in salary:
         match = re.findall(r'\d+', salary)
         if len(match) == 2:
             min_salary, max_salary = map(int, match)
+            unit = "USD" if "$" in salary else "VND"  # Kiểm tra $
+            return min_salary, max_salary, unit
+        return None, None, None
+
+    elif "$" in salary:
+        match = re.findall(r'\d+', salary)
+        if len(match) == 1:
+            min_salary = max_salary = int(match[0])
             return min_salary, max_salary, "USD"
-        else:
-            return None, None, None  
+        return None, None, None
+    
+    # Trường hợp "USD" nhưng không có ký tự $
+    elif "USD" in salary:
+        match = re.findall(r'\d+', salary)
+        if len(match) == 1:
+            min_salary = max_salary = int(match[0])
+            return min_salary, max_salary, "USD"
+        return None, None, None
+    
+    match = re.search(r'\d+', salary)
+    if match:
+        value = int(match.group())
+        unit = "USD" if "$" in salary else "VND"
+        return value, value, unit
+    
     return None, None, None
 
 
 def split_address(address):
+    if address is None or address == "":
+        return None, None
     if ':' in address:
         parts = [part.strip() for part in address.split(':')]
     else:
@@ -46,11 +75,15 @@ def split_address(address):
 
 
 def normalize_job_title(job_title):
+    if job_title is None:
+        return 'Other'
     title = job_title.lower()
 
+    # Remove unwanted patterns
     title = re.sub(r"(lương.*|từ \d+.*|(\d+ năm|năm kinh nghiệm).*|thu nhập từ.*|tới \d+.*|salary.*|code: \w+)", "", title, flags=re.IGNORECASE).strip()
     title = re.sub(r"[\(\)\[\]\{\}]", "", title)  
     title = re.sub(r"\s{2,}", " ", title)  
+
 
     if any(keyword in title for keyword in ["intern", "thực tập", "internship"]):
         return "Intern"

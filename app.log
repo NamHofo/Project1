@@ -1,0 +1,9 @@
+2024-12-18 18:46:35 - INFO - Dữ liệu đã được đọc thành công từ file CSV.
+2024-12-18 18:46:35 - INFO - Dữ liệu đã được chuẩn hóa thành công.
+2024-12-18 18:46:35 - INFO - Chuyển đổi kiểu dữ liệu thành công.
+2024-12-18 18:46:35 - INFO - Tính toán lương trung bình thành công.
+2024-12-18 18:46:36 - INFO - Dữ liệu đã được tải thành công vào cơ sở dữ liệu.
+2024-12-18 18:46:36 - INFO - Đã đóng kết nối cơ sở dữ liệu.
+2024-12-18 18:46:36 - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2024-12-18 18:46:36 - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2024-12-18 18:46:36 - INFO - Vẽ biểu đồ thành công.
