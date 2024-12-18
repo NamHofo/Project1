@@ -2,6 +2,14 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import os
+from sqlalchemy import create_engine
+import re
+
+from data_preprocessing import normalize_salary, split_address, normalize_job_title
+from config import mysql_host, mysql_port, mysql_database, mysql_user, mysql_password
+from visualization import positionGraph, numberOfJobsByCity, techTrend
+from database import engine
 
 
 # Kiểm tra dữ liệu hợp lệ
@@ -12,89 +20,22 @@ except pd.errors.ParserError as e:
 except Exception as e:
     raise RuntimeError(f"Lỗi không mong muốn khi đọc tệp CSV: {e}")
 
-import re
+
 
 # Kiểm tra dữ liệu thiếu hoặc không hợp lệ
 if df.isnull().values.any():
     raise ValueError("Dữ liệu chứa giá trị null!")
 
-def normalize_salary(salary):
-
-    if "thoả thuận" in salary.lower():
-        return None, None, None
-    elif "trên" in salary.lower():
-        min_salary = int(re.search(r'\d+', salary).group())
-        return min_salary, None, "VND"
-    elif "tới" in salary.lower():
-        max_salary = int(re.search(r'\d+', salary).group())
-        return 0, max_salary, "VND"
-    elif "-" in salary:
-        match = re.findall(r'\d+', salary)
-        if len(match) == 2:  # Đảm bảo có 2 số
-            min_salary, max_salary = map(int, match)
-            if( "$" in salary):
-                return min_salary, max_salary, "USD"
-            return min_salary, max_salary, "VND"
-        else:
-            return None, None, None 
-    elif "$" in salary:
-        match = re.findall(r'\d+', salary)
-        if len(match) == 2:
-            min_salary, max_salary = map(int, match)
-            return min_salary, max_salary, "USD"
-        else:
-            return None, None, None  
-    return None, None, None
 
 # Áp dụng hàm chuẩn hóa
 df[['min_salary', 'max_salary', 'salary_unit']] = df['salary'].apply(
     lambda x: pd.Series(normalize_salary(x))
 )
 
-def split_address(address):
-    if ':' in address:
-        parts = [part.strip() for part in address.split(':')]
-    else:
-        parts = [part.strip() for part in address.split(',')]
-
-    if len(parts) == 1:
-        return None, parts[0]
-
-    if len(parts) == 2:
-        district, city = parts[0], parts[1]
-        return district, city
-    return None, None
-
+#Them cot district va city
 df[['district', 'city']] = df['address'].apply(lambda x: pd.Series(split_address(x)))
 
-def normalize_job_title(job_title):
-    title = job_title.lower()
-
-    title = re.sub(r"(lương.*|từ \d+.*|(\d+ năm|năm kinh nghiệm).*|thu nhập từ.*|tới \d+.*|salary.*|code: \w+)", "", title, flags=re.IGNORECASE).strip()
-    title = re.sub(r"[\(\)\[\]\{\}]", "", title)  
-    title = re.sub(r"\s{2,}", " ", title)  
-
-    if any(keyword in title for keyword in ["intern", "thực tập", "internship"]):
-        return "Intern"
-    
-    if any(keyword in title for keyword in ["developer", "lập trình", "angular", "full-stack", "java", "python", "backend", "frontend"]):
-        return "Developer"
-    elif any(keyword in title for keyword in ["analyst", "business analyst", "data analyst", "intelligence", "ba"]):
-        return "Analyst"
-    elif any(keyword in title for keyword in ["support", "helpdesk", "infra", "technical support"]):
-        return "IT Support"
-    elif any(keyword in title for keyword in ["manager", "project manager", "product manager", "scrum", "quản lý"]):
-        return "Manager"
-    elif any(keyword in title for keyword in ["devops", "sre", "site reliability", "quản trị hệ thống"]):
-        return "DevOps/SRE"
-    elif any(keyword in title for keyword in ["secretary", "assistant"]):
-        return "Secretary"
-    elif any(keyword in title for keyword in ["engineer", "kỹ sư", "qa", "tester", "automation", "architect"]):
-        return "Engineer"
-    else:
-        return "Other"
-
-
+#Chuan hoa job_title
 df["normalized_job_title"] = df["job_title"].apply(normalize_job_title)
 
 # Chuyển các cột về string
@@ -112,26 +53,6 @@ for col in float_columns:
 # Chuyển cột 'created_date' sang datetime
 df['created_date'] = pd.to_datetime(df['created_date'], errors='coerce')
 
-
-import os
-from sqlalchemy import create_engine
-
-# Đọc thông tin DB từ biến môi trường
-mysql_host = os.getenv('DB_HOST')
-mysql_port = os.getenv('DB_PORT')
-mysql_database = os.getenv('DB_NAME')
-mysql_user = os.getenv('DB_USER')
-mysql_password = os.getenv('DB_PASS')
-
-# Kiểm tra giá trị biến môi trường 
-print("Database host:", mysql_host)
-print("User:", mysql_user)
-print("Password:", mysql_password)
-print("Database name:", mysql_database)
-print("Port:", mysql_port)  
-
-# Kết nối tới cơ sở dữ liệu
-engine = create_engine(f'mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}:{mysql_port}/{mysql_database}')
 
 #Thực hiện tải dữ liệu
 try:
@@ -169,46 +90,11 @@ if df['avg_salary'].isnull().all():
 df['avg_salary'] = (df['min_salary'] + df['max_salary']) / 2
 salary_by_position = df.groupby('normalized_job_title')['avg_salary'].mean().sort_values(ascending=False)
 
-# Vẽ biểu đồ
-plt.figure(figsize=(10, 6))
-salary_by_position.head(10).plot(kind='bar', color='skyblue')
-plt.title('Top 10 Mức Lương Trung Bình Theo Vị Trí', fontsize=14)
-plt.ylabel('Mức Lương Trung Bình', fontsize=12)
-plt.xlabel('Vị Trí', fontsize=12)
-plt.xticks(rotation=45, ha='right')
-plt.grid(axis='y', linestyle='--', alpha=0.7)
-plt.tight_layout()
-plt.show()
+#Ve bieu do 
+positionGraph(df)
 
+#Ve bieu do phan bo vi tri lam viec theo thanh pho
+numberOfJobsByCity(df)
 
-import seaborn as sns
-
-# Đếm số lượng việc làm theo khu vực (district) và thành phố (city)
-job_distribution = df.groupby(['city', 'district']).size().reset_index(name='job_count')
-
-# Pivot bảng để tạo heatmap
-heatmap_data = job_distribution.pivot(index='district', columns='city', values='job_count')
-
-# Vẽ heatmap
-plt.figure(figsize=(12, 8))
-sns.heatmap(heatmap_data, annot=True, cmap='YlGnBu', cbar=True)
-plt.title('Bản đồ nhiệt phân bố việc làm theo khu vực')
-plt.xlabel('Thành phố')
-plt.ylabel('Khu vực')
-plt.show()
-
-#Vẽ biểu đồ xu hướng công nghệ hot theo thời gian:
-df['created_date'] = pd.to_datetime(df['created_date'])
-
-tech_trend = df.groupby([df['created_date'].dt.to_period('M'), 'normalized_job_title']).size().reset_index(name='job_count')
-
-tech_trend['created_date'] = tech_trend['created_date'].astype(str)
-
-plt.figure(figsize=(14, 8))
-sns.lineplot(data=tech_trend, x='created_date', y='job_count', hue='normalized_job_title', marker='o')
-plt.title('Xu hướng công nghệ hot theo thời gian')
-plt.xlabel('Thời gian')
-plt.ylabel('Số lượng việc làm')
-plt.xticks(rotation=45)
-plt.legend(title='Công nghệ')
-plt.show()
+#Ve bieu do xu huong cong nghe hot theo thoi gian
+techTrend(df)
